@@ -306,8 +306,6 @@ export default function EarthGlobe() {
   const sceneRef = useRef({});
   const [selected, setSelected] = useState(null);
   const [activeLayer, setActiveLayer] = useState(null);
-  const [hovered, setHovered] = useState(null);
-
   const band = selected !== null ? BANDS[selected] : null;
 
   // ─── Three.js Setup ───────────────────────────────────────
@@ -403,8 +401,17 @@ export default function EarthGlobe() {
     const hlGroup = new THREE.Group();
     globe.add(hlGroup);
 
+    function clearHighlightBand() {
+      while (hlGroup.children.length) {
+        const child = hlGroup.children[0];
+        hlGroup.remove(child);
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) child.material.dispose();
+      }
+    }
+
     function makeHighlightBand(latStart, latEnd) {
-      while (hlGroup.children.length) hlGroup.remove(hlGroup.children[0]);
+      clearHighlightBand();
       const thetaS = ((90 - latStart) * Math.PI) / 180;
       const thetaL = ((latStart - latEnd) * Math.PI) / 180;
       // Translucent band
@@ -515,7 +522,7 @@ export default function EarthGlobe() {
 
     sceneRef.current = {
       renderer, camera, scene, globe, overlayMesh, overlayTex,
-      overlayCanvas, state, hitMeshes, makeHighlightBand, hlGroup, cloudMesh,
+      overlayCanvas, state, hitMeshes, makeHighlightBand, clearHighlightBand, hlGroup, cloudMesh,
     };
 
     const raycaster = new THREE.Raycaster();
@@ -579,7 +586,7 @@ export default function EarthGlobe() {
         } else {
           state.selId = null;
           setSelected(null);
-          while (hlGroup.children.length) hlGroup.remove(hlGroup.children[0]);
+          clearHighlightBand();
           state.targetZoom = 4.8;
         }
       }
@@ -672,6 +679,17 @@ export default function EarthGlobe() {
     return () => {
       cancelAnimationFrame(anim);
       window.removeEventListener("resize", onResize);
+      el.removeEventListener("mousedown", onDown);
+      el.removeEventListener("mousemove", onMove);
+      el.removeEventListener("mouseup", onUp);
+      clearHighlightBand();
+      scene.traverse((obj) => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+          if (obj.material.map) obj.material.map.dispose();
+          obj.material.dispose();
+        }
+      });
       container.removeChild(el);
       renderer.dispose();
     };
@@ -681,11 +699,13 @@ export default function EarthGlobe() {
   useEffect(() => {
     const s = sceneRef.current;
     if (!s.overlayMesh) return;
+    const oldMap = s.overlayMesh.material.map;
     const canvas = createOverlayTexture(activeLayer);
     s.overlayMesh.material.map = new THREE.CanvasTexture(canvas);
     s.overlayMesh.material.map.wrapS = THREE.RepeatWrapping;
     s.overlayMesh.material.needsUpdate = true;
     s.state.targetOverlayOpacity = activeLayer ? 1 : 0;
+    if (oldMap) oldMap.dispose();
   }, [activeLayer]);
 
   // ─── Select band (from sidebar or globe) ──────────────────
@@ -700,8 +720,8 @@ export default function EarthGlobe() {
       s.state.targetZoom = 4.2;
       s.state.auto = false;
       s.state.lastT = Date.now();
-    } else if (s.hlGroup) {
-      while (s.hlGroup.children.length) s.hlGroup.remove(s.hlGroup.children[0]);
+    } else if (s.clearHighlightBand) {
+      s.clearHighlightBand();
       s.state.targetZoom = 4.8;
     }
   }, []);
