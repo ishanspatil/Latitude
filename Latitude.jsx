@@ -375,6 +375,18 @@ export default function EarthGlobe() {
     const earthMesh = new THREE.Mesh(earthGeo, earthMat);
     globe.add(earthMesh);
 
+    // Load real Earth texture for accurate continents (procedural texture is immediate fallback)
+    new THREE.TextureLoader().load(
+      'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg',
+      (texture) => {
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.wrapS = THREE.RepeatWrapping;
+        earthMesh.material.map = texture;
+        earthMesh.material.needsUpdate = true;
+        earthTex.dispose();
+      }
+    );
+
     // Cloud layer
     const cloudCanvas = createCloudTexture();
     const cloudTex = new THREE.CanvasTexture(cloudCanvas);
@@ -821,7 +833,7 @@ export default function EarthGlobe() {
         {/* Active layer legend */}
         {activeLayer && layerMeta && (
           <div style={{
-            position: "absolute", bottom: 28, left: 28, zIndex: 10, pointerEvents: "none",
+            position: "absolute", bottom: 28, left: 64, zIndex: 10, pointerEvents: "none",
             background: "rgba(10,14,24,0.7)", backdropFilter: "blur(24px)",
             WebkitBackdropFilter: "blur(24px)",
             borderRadius: 16, padding: "14px 18px",
@@ -851,11 +863,10 @@ export default function EarthGlobe() {
         {/* Band quick-nav (vertical strip on right edge) */}
         <div style={{
           position: "absolute",
-          right: band ? 400 : 20,
-          top: "50%", transform: "translateY(-50%)",
+          left: 20,
+          bottom: 28,
           zIndex: 10, display: "flex", flexDirection: "column", gap: 2,
           pointerEvents: "auto",
-          transition: "right 0.45s cubic-bezier(0.22, 1, 0.36, 1)",
         }}>
           {BANDS.map((b) => {
             const isSel = selected === b.id;
@@ -924,7 +935,7 @@ export default function EarthGlobe() {
                 transition: "all 0.2s",
                 marginTop: 2,
               }}>
-                \u2715
+                {"\u2715"}
               </button>
 
               {/* Band header */}
@@ -1069,7 +1080,7 @@ export default function EarthGlobe() {
                   fontSize: 9, textTransform: "uppercase", letterSpacing: "0.12em",
                   color: "rgba(255,190,80,0.55)", marginBottom: 8, fontWeight: 700,
                 }}>
-                  \u2728 Key Insight
+                  {"\u2728"} Key Insight
                 </div>
                 <div style={{
                   fontSize: 13, color: "rgba(255,255,255,0.88)", lineHeight: 1.7,
@@ -1093,7 +1104,7 @@ export default function EarthGlobe() {
                     border: "1px solid rgba(255,255,255,0.05)",
                     fontWeight: 500, letterSpacing: "0.01em",
                   }}>
-                    \ud83d\udccd {p}
+                    {"\ud83d\udccd"} {p}
                   </span>
                 ))}
               </div>
@@ -1123,7 +1134,7 @@ export default function EarthGlobe() {
                       }}
                     >
                       <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", marginBottom: 2 }}>
-                        \u2191 North
+                        {"\u2191"} North
                       </div>
                       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", fontWeight: 600 }}>
                         {BANDS[band.id - 1].icon} {BANDS[band.id - 1].name}
@@ -1143,7 +1154,7 @@ export default function EarthGlobe() {
                       }}
                     >
                       <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", marginBottom: 2 }}>
-                        \u2193 South
+                        {"\u2193"} South
                       </div>
                       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", fontWeight: 600 }}>
                         {BANDS[band.id + 1].icon} {BANDS[band.id + 1].name}
