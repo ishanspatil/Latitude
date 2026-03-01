@@ -62,6 +62,123 @@ const LAYER_RANGES = {
 };
 
 // ═══════════════════════════════════════════════════════════════
+// SHARED GEOGRAPHY DATA
+// ═══════════════════════════════════════════════════════════════
+
+const LAND_POLYS = [
+  { type:"land", points:[[-17,35],[-5,36],[10,37],[15,32],[25,32],[33,30],[35,27],[38,20],[42,12],[50,12],[51,8],[45,2],[42,-2],[40,-5],[35,-8],[33,-15],[35,-22],[33,-27],[30,-30],[28,-33],[26,-34],[20,-35],[18,-34],[15,-28],[12,-18],[12,-10],[10,-5],[8,4],[5,5],[2,6],[-2,5],[-8,5],[-12,8],[-16,12],[-17,15],[-17,21],[-13,25],[-15,28],[-17,32]] },
+  { type:"land", points:[[-10,36],[-9,38],[-8,43],[-2,44],[0,46],[2,48],[5,48],[8,48],[6,54],[8,55],[10,54],[12,55],[14,54],[17,55],[20,54],[22,55],[24,54],[26,55],[28,54],[30,55],[32,52],[35,48],[40,48],[42,45],[38,42],[35,40],[30,38],[28,37],[25,36],[20,36],[15,38],[12,38],[8,44],[5,46],[3,47],[0,44],[-3,44],[-5,44],[-8,44],[-9,43],[-10,40]] },
+  { type:"land", points:[[40,48],[45,52],[50,55],[55,58],[60,60],[65,62],[70,65],[80,68],[90,70],[100,68],[110,65],[120,62],[125,60],[130,55],[135,52],[140,50],[142,46],[140,42],[135,38],[130,35],[128,33],[125,30],[120,25],[115,22],[110,20],[108,15],[105,12],[100,14],[98,16],[95,20],[90,22],[85,23],[80,25],[75,24],[70,22],[68,24],[65,25],[62,26],[55,25],[50,27],[45,30],[42,32],[40,35],[38,42],[40,45]] },
+  { type:"land", points:[[68,24],[72,22],[75,20],[78,16],[80,12],[80,8],[77,8],[75,10],[72,14],[70,18],[68,22]] },
+  { type:"land", points:[[-168,65],[-162,64],[-150,62],[-140,60],[-135,58],[-130,55],[-125,50],[-124,46],[-122,42],[-118,35],[-115,32],[-110,30],[-105,28],[-100,26],[-97,26],[-95,28],[-92,30],[-88,30],[-85,30],[-82,28],[-81,26],[-80,25],[-82,30],[-78,35],[-75,38],[-73,41],[-70,42],[-68,44],[-66,45],[-65,47],[-60,47],[-58,50],[-55,52],[-60,55],[-65,58],[-70,60],[-80,62],[-90,65],[-100,68],[-110,70],[-120,72],[-130,71],[-140,68],[-150,65],[-160,66]] },
+  { type:"land", points:[[-80,10],[-78,8],[-75,5],[-72,2],[-70,-2],[-72,-5],[-75,-10],[-76,-15],[-72,-18],[-68,-22],[-66,-25],[-65,-30],[-67,-35],[-68,-40],[-70,-45],[-72,-50],[-74,-52],[-72,-48],[-70,-42],[-68,-38],[-65,-35],[-62,-30],[-58,-28],[-55,-25],[-50,-22],[-48,-18],[-45,-15],[-42,-12],[-40,-8],[-38,-5],[-36,-2],[-35,0],[-38,2],[-42,5],[-48,6],[-52,5],[-55,6],[-60,8],[-65,10],[-70,11],[-75,11],[-78,10]] },
+  { type:"land", points:[[115,-12],[120,-14],[125,-14],[130,-12],[135,-12],[138,-15],[140,-18],[142,-20],[145,-22],[148,-24],[150,-26],[152,-28],[153,-30],[150,-33],[148,-35],[145,-38],[140,-38],[138,-36],[135,-34],[132,-32],[130,-32],[128,-30],[125,-28],[122,-26],[118,-24],[116,-22],[114,-22],[113,-24],[115,-26],[116,-30],[115,-32],[114,-33],[113,-32],[114,-28],[114,-24],[113,-20],[114,-18],[115,-15]] },
+  { type:"ice", points:[[-55,60],[-50,62],[-45,65],[-40,68],[-35,72],[-30,75],[-25,78],[-20,80],[-25,82],[-30,83],[-40,82],[-50,80],[-55,78],[-58,75],[-60,72],[-58,68],[-55,64]] },
+  { type:"ice", points:[[-180,-65],[-150,-68],[-120,-70],[-90,-72],[-60,-70],[-30,-68],[0,-68],[30,-70],[60,-68],[90,-70],[120,-68],[150,-70],[180,-65],[180,-90],[-180,-90]] },
+  { type:"desert", points:[[-15,20],[-5,22],[5,25],[15,28],[25,30],[35,28],[40,25],[45,22],[50,20],[55,18],[50,15],[40,15],[30,18],[20,20],[10,18],[0,16],[-10,18]] },
+  { type:"desert", points:[[68,28],[72,26],[76,24],[72,22],[68,24]] },
+  { type:"desert", points:[[125,-20],[130,-22],[135,-24],[138,-26],[140,-28],[138,-30],[135,-30],[130,-28],[126,-26],[124,-24],[125,-22]] },
+  { type:"desert", points:[[-72,-18],[-70,-22],[-70,-28],[-68,-30],[-66,-28],[-68,-24],[-70,-20]] },
+];
+
+const GEO_FEATURES = [
+  // Hot deserts
+  { lon:20, lat:25, r:20, m:{ temp:12, rainfall:-350, population:-20, biodiversity:-30, elevation:200 } },
+  { lon:50, lat:25, r:14, m:{ temp:10, rainfall:-280, population:-10, biodiversity:-25, elevation:300 } },
+  { lon:130, lat:-24, r:13, m:{ temp:8, rainfall:-250, population:-12, biodiversity:-20, elevation:200 } },
+  { lon:75, lat:35, r:10, m:{ temp:6, rainfall:-200, population:-8, biodiversity:-15, elevation:500 } },
+  { lon:100, lat:42, r:12, m:{ temp:4, rainfall:-200, population:-8, biodiversity:-10, elevation:600 } },
+  // Mountains
+  { lon:85, lat:30, r:10, m:{ temp:-18, rainfall:150, population:-15, biodiversity:-10, elevation:2200 } },
+  { lon:90, lat:35, r:8, m:{ temp:-15, rainfall:-150, population:-12, biodiversity:-15, elevation:2000 } },
+  { lon:-68, lat:-15, r:5, m:{ temp:-14, rainfall:100, population:-10, biodiversity:8, elevation:1800 } },
+  { lon:-68, lat:5, r:4, m:{ temp:-10, rainfall:150, population:-5, biodiversity:12, elevation:1500 } },
+  { lon:-110, lat:42, r:7, m:{ temp:-8, rainfall:-60, population:-12, biodiversity:5, elevation:1200 } },
+  { lon:10, lat:47, r:4, m:{ temp:-6, rainfall:150, population:8, biodiversity:8, elevation:900 } },
+  // Tropical rainforests
+  { lon:-60, lat:-3, r:16, m:{ temp:2, rainfall:1200, population:-8, biodiversity:40, elevation:30 } },
+  { lon:22, lat:1, r:10, m:{ temp:1, rainfall:700, population:-5, biodiversity:35, elevation:50 } },
+  { lon:110, lat:2, r:12, m:{ temp:1, rainfall:800, population:8, biodiversity:35, elevation:30 } },
+  // Dense populations
+  { lon:116, lat:35, r:8, m:{ temp:0, rainfall:80, population:50, biodiversity:-10, elevation:50 } },
+  { lon:80, lat:22, r:10, m:{ temp:2, rainfall:250, population:50, biodiversity:5, elevation:80 } },
+  { lon:10, lat:50, r:8, m:{ temp:0, rainfall:80, population:35, biodiversity:-5, elevation:80 } },
+  { lon:-78, lat:38, r:5, m:{ temp:0, rainfall:40, population:25, biodiversity:-5, elevation:50 } },
+  { lon:139, lat:36, r:3, m:{ temp:0, rainfall:80, population:40, biodiversity:-3, elevation:80 } },
+  { lon:90, lat:25, r:5, m:{ temp:0, rainfall:300, population:45, biodiversity:5, elevation:10 } },
+  // Cold interiors
+  { lon:90, lat:62, r:22, m:{ temp:-12, rainfall:-60, population:-5, biodiversity:-8, elevation:100 } },
+  { lon:-100, lat:58, r:14, m:{ temp:-8, rainfall:30, population:-5, biodiversity:5, elevation:150 } },
+  // Highlands & misc
+  { lon:38, lat:8, r:5, m:{ temp:-4, rainfall:250, population:12, biodiversity:12, elevation:1000 } },
+  { lon:78, lat:12, r:6, m:{ temp:0, rainfall:600, population:20, biodiversity:15, elevation:30 } },
+  { lon:10, lat:5, r:5, m:{ temp:0, rainfall:500, population:5, biodiversity:20, elevation:20 } },
+  // Coral Triangle / marine biodiversity
+  { lon:125, lat:-5, r:10, m:{ temp:1, rainfall:400, population:5, biodiversity:30, elevation:0 } },
+];
+
+// ═══════════════════════════════════════════════════════════════
+// NOISE & LAND MASK UTILITIES
+// ═══════════════════════════════════════════════════════════════
+
+function _hash2D(ix, iy) {
+  let n = ((ix * 374761393 + iy * 668265263) | 0);
+  n = ((n ^ (n >> 13)) * 1274126177) | 0;
+  n = n ^ (n >> 16);
+  return (n & 0x7fffffff) / 0x7fffffff;
+}
+
+function _valueNoise(x, y) {
+  const ix = Math.floor(x), iy = Math.floor(y);
+  const fx = x - ix, fy = y - iy;
+  const ux = fx * fx * (3 - 2 * fx);
+  const uy = fy * fy * (3 - 2 * fy);
+  return _hash2D(ix, iy) * (1 - ux) * (1 - uy) + _hash2D(ix + 1, iy) * ux * (1 - uy) +
+    _hash2D(ix, iy + 1) * (1 - ux) * uy + _hash2D(ix + 1, iy + 1) * ux * uy;
+}
+
+function _fbm(x, y, octaves) {
+  let v = 0, amp = 0.5, freq = 1;
+  for (let i = 0; i < octaves; i++) {
+    v += amp * _valueNoise(x * freq, y * freq);
+    amp *= 0.5; freq *= 2;
+  }
+  return v;
+}
+
+function _geoDist(lon1, lat1, lon2, lat2) {
+  let dlon = Math.abs(lon1 - lon2);
+  if (dlon > 180) dlon = 360 - dlon;
+  const dlat = lat1 - lat2;
+  const cosLat = Math.cos((lat1 + lat2) * 0.5 * Math.PI / 180);
+  return Math.sqrt((dlon * cosLat) * (dlon * cosLat) + dlat * dlat);
+}
+
+let _landMaskCache = null;
+function _getLandMask(W, H) {
+  if (_landMaskCache) return _landMaskCache;
+  const c = document.createElement("canvas");
+  c.width = W; c.height = H;
+  const ctx = c.getContext("2d");
+  const toXY = (lon, lat) => [(lon + 180) / 360 * W, (90 - lat) / 180 * H];
+  LAND_POLYS.forEach(poly => {
+    const val = poly.type === "land" ? 255 : poly.type === "desert" ? 128 : 64;
+    ctx.fillStyle = `rgb(${val},0,0)`;
+    ctx.beginPath();
+    const [sx, sy] = toXY(poly.points[0][0], poly.points[0][1]);
+    ctx.moveTo(sx, sy);
+    for (let i = 1; i < poly.points.length; i++) {
+      const [x, y] = toXY(poly.points[i][0], poly.points[i][1]);
+      ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+  });
+  _landMaskCache = ctx.getImageData(0, 0, W, H).data;
+  return _landMaskCache;
+}
+
+// ═══════════════════════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════════════════════
 
@@ -141,37 +258,17 @@ function createEarthTexture() {
     ctx.stroke();
   }
 
-  const land = "rgba(40,62,40,0.93)";
-  const edge = "rgba(70,100,70,0.5)";
-  const ice = "rgba(200,218,235,0.92)";
-  const iceEdge = "rgba(170,195,220,0.5)";
-  const desert = "rgba(95,82,55,0.9)";
-  const desEdge = "rgba(120,105,70,0.45)";
+  const colors = {
+    land: "rgba(40,62,40,0.93)", edge: "rgba(70,100,70,0.5)",
+    ice: "rgba(200,218,235,0.92)", iceEdge: "rgba(170,195,220,0.5)",
+    desert: "rgba(95,82,55,0.9)", desEdge: "rgba(120,105,70,0.45)",
+  };
 
-  // Africa
-  drawContinent([[-17,35],[-5,36],[10,37],[15,32],[25,32],[33,30],[35,27],[38,20],[42,12],[50,12],[51,8],[45,2],[42,-2],[40,-5],[35,-8],[33,-15],[35,-22],[33,-27],[30,-30],[28,-33],[26,-34],[20,-35],[18,-34],[15,-28],[12,-18],[12,-10],[10,-5],[8,4],[5,5],[2,6],[-2,5],[-8,5],[-12,8],[-16,12],[-17,15],[-17,21],[-13,25],[-15,28],[-17,32]], land, edge);
-  // Europe
-  drawContinent([[-10,36],[-9,38],[-8,43],[-2,44],[0,46],[2,48],[5,48],[8,48],[6,54],[8,55],[10,54],[12,55],[14,54],[17,55],[20,54],[22,55],[24,54],[26,55],[28,54],[30,55],[32,52],[35,48],[40,48],[42,45],[38,42],[35,40],[30,38],[28,37],[25,36],[20,36],[15,38],[12,38],[8,44],[5,46],[3,47],[0,44],[-3,44],[-5,44],[-8,44],[-9,43],[-10,40]], land, edge);
-  // Asia
-  drawContinent([[40,48],[45,52],[50,55],[55,58],[60,60],[65,62],[70,65],[80,68],[90,70],[100,68],[110,65],[120,62],[125,60],[130,55],[135,52],[140,50],[142,46],[140,42],[135,38],[130,35],[128,33],[125,30],[120,25],[115,22],[110,20],[108,15],[105,12],[100,14],[98,16],[95,20],[90,22],[85,23],[80,25],[75,24],[70,22],[68,24],[65,25],[62,26],[55,25],[50,27],[45,30],[42,32],[40,35],[38,42],[40,45]], land, edge);
-  // India
-  drawContinent([[68,24],[72,22],[75,20],[78,16],[80,12],[80,8],[77,8],[75,10],[72,14],[70,18],[68,22]], land, edge);
-  // North America
-  drawContinent([[-168,65],[-162,64],[-150,62],[-140,60],[-135,58],[-130,55],[-125,50],[-124,46],[-122,42],[-118,35],[-115,32],[-110,30],[-105,28],[-100,26],[-97,26],[-95,28],[-92,30],[-88,30],[-85,30],[-82,28],[-81,26],[-80,25],[-82,30],[-78,35],[-75,38],[-73,41],[-70,42],[-68,44],[-66,45],[-65,47],[-60,47],[-58,50],[-55,52],[-60,55],[-65,58],[-70,60],[-80,62],[-90,65],[-100,68],[-110,70],[-120,72],[-130,71],[-140,68],[-150,65],[-160,66]], land, edge);
-  // South America
-  drawContinent([[-80,10],[-78,8],[-75,5],[-72,2],[-70,-2],[-72,-5],[-75,-10],[-76,-15],[-72,-18],[-68,-22],[-66,-25],[-65,-30],[-67,-35],[-68,-40],[-70,-45],[-72,-50],[-74,-52],[-72,-48],[-70,-42],[-68,-38],[-65,-35],[-62,-30],[-58,-28],[-55,-25],[-50,-22],[-48,-18],[-45,-15],[-42,-12],[-40,-8],[-38,-5],[-36,-2],[-35,0],[-38,2],[-42,5],[-48,6],[-52,5],[-55,6],[-60,8],[-65,10],[-70,11],[-75,11],[-78,10]], land, edge);
-  // Australia
-  drawContinent([[115,-12],[120,-14],[125,-14],[130,-12],[135,-12],[138,-15],[140,-18],[142,-20],[145,-22],[148,-24],[150,-26],[152,-28],[153,-30],[150,-33],[148,-35],[145,-38],[140,-38],[138,-36],[135,-34],[132,-32],[130,-32],[128,-30],[125,-28],[122,-26],[118,-24],[116,-22],[114,-22],[113,-24],[115,-26],[116,-30],[115,-32],[114,-33],[113,-32],[114,-28],[114,-24],[113,-20],[114,-18],[115,-15]], land, edge);
-  // Greenland
-  drawContinent([[-55,60],[-50,62],[-45,65],[-40,68],[-35,72],[-30,75],[-25,78],[-20,80],[-25,82],[-30,83],[-40,82],[-50,80],[-55,78],[-58,75],[-60,72],[-58,68],[-55,64]], ice, iceEdge);
-  // Antarctica
-  drawContinent([[-180,-65],[-150,-68],[-120,-70],[-90,-72],[-60,-70],[-30,-68],[0,-68],[30,-70],[60,-68],[90,-70],[120,-68],[150,-70],[180,-65],[180,-90],[-180,-90]], ice, iceEdge);
-
-  // Desert overlays
-  drawContinent([[-15,20],[-5,22],[5,25],[15,28],[25,30],[35,28],[40,25],[45,22],[50,20],[55,18],[50,15],[40,15],[30,18],[20,20],[10,18],[0,16],[-10,18]], desert, desEdge);
-  drawContinent([[68,28],[72,26],[76,24],[72,22],[68,24]], desert, desEdge);
-  drawContinent([[125,-20],[130,-22],[135,-24],[138,-26],[140,-28],[138,-30],[135,-30],[130,-28],[126,-26],[124,-24],[125,-22]], desert, desEdge);
-  drawContinent([[-72,-18],[-70,-22],[-70,-28],[-68,-30],[-66,-28],[-68,-24],[-70,-20]], desert, desEdge);
+  LAND_POLYS.forEach(poly => {
+    const fill = poly.type === "ice" ? colors.ice : poly.type === "desert" ? colors.desert : colors.land;
+    const stroke = poly.type === "ice" ? colors.iceEdge : poly.type === "desert" ? colors.desEdge : colors.edge;
+    drawContinent(poly.points, fill, stroke);
+  });
 
   // Tropical vegetation glow
   for (let i = 0; i < 20000; i++) {
@@ -243,36 +340,113 @@ function createOverlayTexture(layerKey) {
   }
 
   const layer = LAYERS.find(l => l.key === layerKey);
-  const points = [];
-  BANDS.forEach(band => {
-    const midLat = (band.latStart + band.latEnd) / 2;
-    const y = (90 - midLat) / 180;
-    points.push({ y, value: band[layerKey] });
-  });
-  points.sort((a, b) => a.y - b.y);
+  const range = LAYER_RANGES[layerKey];
+  const mask = _getLandMask(W, H);
 
-  for (let py = 0; py < H; py++) {
-    const t = py / H;
-    let value;
-    if (t <= points[0].y) {
-      value = points[0].value;
-    } else if (t >= points[points.length-1].y) {
-      value = points[points.length-1].value;
-    } else {
-      for (let i = 0; i < points.length - 1; i++) {
-        if (t >= points[i].y && t <= points[i+1].y) {
-          const lt = (t - points[i].y) / (points[i+1].y - points[i].y);
-          const smooth = lt * lt * (3 - 2 * lt);
-          value = points[i].value + (points[i+1].value - points[i].value) * smooth;
-          break;
-        }
+  // Build latitude control points sorted north-to-south
+  const latPts = BANDS.map(b => ({
+    lat: (b.latStart + b.latEnd) / 2,
+    val: b[layerKey]
+  })).sort((a, b) => b.lat - a.lat);
+
+  function getLatValue(lat) {
+    if (lat >= latPts[0].lat) return latPts[0].val;
+    if (lat <= latPts[latPts.length - 1].lat) return latPts[latPts.length - 1].val;
+    for (let i = 0; i < latPts.length - 1; i++) {
+      if (lat <= latPts[i].lat && lat >= latPts[i + 1].lat) {
+        const t = (latPts[i].lat - lat) / (latPts[i].lat - latPts[i + 1].lat);
+        const s = t * t * (3 - 2 * t);
+        return latPts[i].val + (latPts[i + 1].val - latPts[i].val) * s;
       }
     }
-    const col = interpolateLayerColor(layer, value);
-    ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},0.6)`;
-    ctx.fillRect(0, py, W, 1);
+    return latPts[latPts.length - 1].val;
   }
 
+  const imgData = ctx.createImageData(W, H);
+  const pxArr = imgData.data;
+  const noiseAmt = { temp: 4, rainfall: 120, population: 8, biodiversity: 8, elevation: 120 };
+  const nScale = layerKey === "population" ? 0.008 : 0.015;
+
+  for (let py = 0; py < H; py++) {
+    const lat = 90 - (py / H) * 180;
+    const baseVal = getLatValue(lat);
+    const cosLat = Math.cos(lat * Math.PI / 180);
+
+    for (let px = 0; px < W; px++) {
+      const lon = (px / W) * 360 - 180;
+      const mIdx = (py * W + px) * 4;
+      const landR = mask[mIdx];
+      const onLand = landR > 32;
+      const isDesert = landR > 96 && landR < 192;
+      const isIce = landR > 32 && landR < 96;
+
+      let value = baseVal;
+
+      // Land vs ocean differentiation
+      if (!onLand) {
+        if (layerKey === "temp") {
+          value = 28 * cosLat - 2;
+        } else if (layerKey === "population") {
+          value = 0;
+        } else if (layerKey === "elevation") {
+          value = 0;
+        } else if (layerKey === "rainfall") {
+          value = baseVal * 0.45;
+        } else if (layerKey === "biodiversity") {
+          value = Math.max(5, 35 * cosLat + 5);
+        }
+      } else {
+        if (isDesert) {
+          if (layerKey === "temp") value += 6;
+          else if (layerKey === "rainfall") value = Math.max(range.min, value * 0.25);
+          else if (layerKey === "biodiversity") value = Math.max(range.min, value * 0.35);
+          else if (layerKey === "population") value = Math.max(range.min, value * 0.25);
+        }
+        if (isIce) {
+          if (layerKey === "temp") value -= 10;
+          else if (layerKey === "biodiversity") value = Math.max(range.min, value * 0.25);
+          else if (layerKey === "population") value = 0;
+          else if (layerKey === "elevation") value = Math.max(value, 1500);
+        }
+      }
+
+      // Geographic feature modifiers
+      for (let fi = 0; fi < GEO_FEATURES.length; fi++) {
+        const feat = GEO_FEATURES[fi];
+        if (Math.abs(lat - feat.lat) > feat.r * 1.5) continue;
+        const dist = _geoDist(lon, lat, feat.lon, feat.lat);
+        if (dist < feat.r) {
+          const inf = 1 - dist / feat.r;
+          const smooth = inf * inf * (3 - 2 * inf);
+          value += (feat.m[layerKey] || 0) * smooth;
+        }
+      }
+
+      // Organic noise variation
+      const n = (_fbm(px * nScale, py * nScale, 4) - 0.5) * 2;
+      value += n * (noiseAmt[layerKey] || 5);
+
+      value = Math.max(range.min, Math.min(range.max, value));
+
+      const col = interpolateLayerColor(layer, value);
+
+      // Opacity: less over ocean for land-centric indicators
+      let alpha = 0.55;
+      if (!onLand) {
+        if (layerKey === "population") alpha = 0.12;
+        else if (layerKey === "elevation") alpha = 0.18;
+        else alpha = 0.4;
+      }
+
+      const idx = (py * W + px) * 4;
+      pxArr[idx] = col[0];
+      pxArr[idx + 1] = col[1];
+      pxArr[idx + 2] = col[2];
+      pxArr[idx + 3] = Math.round(alpha * 255);
+    }
+  }
+
+  ctx.putImageData(imgData, 0, 0);
   return canvas;
 }
 
