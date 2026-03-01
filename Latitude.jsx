@@ -154,28 +154,29 @@ function _geoDist(lon1, lat1, lon2, lat2) {
   return Math.sqrt((dlon * cosLat) * (dlon * cosLat) + dlat * dlat);
 }
 
-let _landMaskCache = null;
-function _getLandMask(W, H) {
-  if (_landMaskCache) return _landMaskCache;
-  const c = document.createElement("canvas");
-  c.width = W; c.height = H;
-  const ctx = c.getContext("2d");
-  const toXY = (lon, lat) => [(lon + 180) / 360 * W, (90 - lat) / 180 * H];
-  LAND_POLYS.forEach(poly => {
-    const val = poly.type === "land" ? 255 : poly.type === "desert" ? 128 : 64;
-    ctx.fillStyle = `rgb(${val},0,0)`;
-    ctx.beginPath();
-    const [sx, sy] = toXY(poly.points[0][0], poly.points[0][1]);
-    ctx.moveTo(sx, sy);
-    for (let i = 1; i < poly.points.length; i++) {
-      const [x, y] = toXY(poly.points[i][0], poly.points[i][1]);
-      ctx.lineTo(x, y);
+// Smooth ocean weight: 0 = land/coastal, 1 = deep open ocean
+// Uses known ocean basin centers — no polygon rasterisation, no hard edges
+function _oceanWeight(lon, lat) {
+  const basins = [
+    { lon:-155, lat:  5, r:55 }, // Central Pacific
+    { lon:-135, lat:-30, r:45 }, // South Pacific
+    { lon: 175, lat:-38, r:35 }, // SW Pacific
+    { lon: -33, lat: 38, r:35 }, // North Atlantic
+    { lon: -23, lat:-28, r:35 }, // South Atlantic
+    { lon:  70, lat:-20, r:42 }, // Indian Ocean
+    { lon:  50, lat: 15, r:20 }, // Arabian Sea
+    { lon:  88, lat: 14, r:18 }, // Bay of Bengal (light)
+    { lon:-170, lat: 55, r:22 }, // North Pacific
+  ];
+  let w = 0;
+  for (const b of basins) {
+    const d = _geoDist(lon, lat, b.lon, b.lat);
+    if (d < b.r) {
+      const t = 1 - d / b.r;
+      w = Math.max(w, t * t * (3 - 2 * t));
     }
-    ctx.closePath();
-    ctx.fill();
-  });
-  _landMaskCache = ctx.getImageData(0, 0, W, H).data;
-  return _landMaskCache;
+  }
+  return w;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -341,7 +342,6 @@ function createOverlayTexture(layerKey) {
 
   const layer = LAYERS.find(l => l.key === layerKey);
   const range = LAYER_RANGES[layerKey];
-  const mask = _getLandMask(W, H);
 
   // Build latitude control points sorted north-to-south
   const latPts = BANDS.map(b => ({
@@ -364,8 +364,8 @@ function createOverlayTexture(layerKey) {
 
   const imgData = ctx.createImageData(W, H);
   const pxArr = imgData.data;
-  const noiseAmt = { temp: 4, rainfall: 120, population: 8, biodiversity: 8, elevation: 120 };
-  const nScale = layerKey === "population" ? 0.008 : 0.015;
+  const noiseAmt = { temp: 3, rainfall: 100, population: 5, biodiversity: 7, elevation: 80 };
+  const nScale = 0.015;
 
   for (let py = 0; py < H; py++) {
     const lat = 90 - (py / H) * 180;
@@ -374,43 +374,22 @@ function createOverlayTexture(layerKey) {
 
     for (let px = 0; px < W; px++) {
       const lon = (px / W) * 360 - 180;
-      const mIdx = (py * W + px) * 4;
-      const landR = mask[mIdx];
-      const onLand = landR > 32;
-      const isDesert = landR > 96 && landR < 192;
-      const isIce = landR > 32 && landR < 96;
 
-      let value = baseVal;
+      // Smooth 0→1 weight: how "open ocean" this pixel is
+      const oceanW = _oceanWeight(lon, lat);
 
-      // Land vs ocean differentiation
-      if (!onLand) {
-        if (layerKey === "temp") {
-          value = 28 * cosLat - 2;
-        } else if (layerKey === "population") {
-          value = 0;
-        } else if (layerKey === "elevation") {
-          value = 0;
-        } else if (layerKey === "rainfall") {
-          value = baseVal * 0.45;
-        } else if (layerKey === "biodiversity") {
-          value = Math.max(5, 35 * cosLat + 5);
-        }
-      } else {
-        if (isDesert) {
-          if (layerKey === "temp") value += 6;
-          else if (layerKey === "rainfall") value = Math.max(range.min, value * 0.25);
-          else if (layerKey === "biodiversity") value = Math.max(range.min, value * 0.35);
-          else if (layerKey === "population") value = Math.max(range.min, value * 0.25);
-        }
-        if (isIce) {
-          if (layerKey === "temp") value -= 10;
-          else if (layerKey === "biodiversity") value = Math.max(range.min, value * 0.25);
-          else if (layerKey === "population") value = 0;
-          else if (layerKey === "elevation") value = Math.max(value, 1500);
-        }
-      }
+      // Ocean target value per indicator (scientifically reasonable)
+      let oceanVal;
+      if (layerKey === "temp")        oceanVal = 28 * cosLat - 2;           // SST follows latitude
+      else if (layerKey === "population")  oceanVal = 0;
+      else if (layerKey === "elevation")   oceanVal = 0;
+      else if (layerKey === "rainfall")    oceanVal = 200 + 300 * cosLat;    // maritime precipitation
+      else /* biodiversity */              oceanVal = 12 + 28 * cosLat;
 
-      // Geographic feature modifiers
+      // Blend latitude base toward ocean value
+      let value = baseVal * (1 - oceanW) + oceanVal * oceanW;
+
+      // Geographic feature modifiers (land hotspots win back over ocean blend)
       for (let fi = 0; fi < GEO_FEATURES.length; fi++) {
         const feat = GEO_FEATURES[fi];
         if (Math.abs(lat - feat.lat) > feat.r * 1.5) continue;
@@ -418,25 +397,23 @@ function createOverlayTexture(layerKey) {
         if (dist < feat.r) {
           const inf = 1 - dist / feat.r;
           const smooth = inf * inf * (3 - 2 * inf);
-          value += (feat.m[layerKey] || 0) * smooth;
+          // Land features are attenuated when deep in ocean territory
+          value += (feat.m[layerKey] || 0) * smooth * (1 - oceanW * 0.7);
         }
       }
 
-      // Organic noise variation
+      // Organic noise for natural texture
       const n = (_fbm(px * nScale, py * nScale, 4) - 0.5) * 2;
-      value += n * (noiseAmt[layerKey] || 5);
+      value += n * (noiseAmt[layerKey] || 4);
 
       value = Math.max(range.min, Math.min(range.max, value));
-
       const col = interpolateLayerColor(layer, value);
 
-      // Opacity: less over ocean for land-centric indicators
-      let alpha = 0.55;
-      if (!onLand) {
-        if (layerKey === "population") alpha = 0.12;
-        else if (layerKey === "elevation") alpha = 0.18;
-        else alpha = 0.4;
-      }
+      // Alpha: land-centric indicators fade out smoothly over open ocean
+      let alpha = 0.6;
+      if (layerKey === "population") alpha = 0.6 - oceanW * 0.52;
+      else if (layerKey === "elevation") alpha = 0.6 - oceanW * 0.44;
+      else alpha = 0.6 - oceanW * 0.15;
 
       const idx = (py * W + px) * 4;
       pxArr[idx] = col[0];
